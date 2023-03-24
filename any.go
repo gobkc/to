@@ -15,7 +15,7 @@ func Any[ToType int | int64 | int32 | string | float32 | float64](dest any) (t T
 			return ToType(v)
 		}
 	case reflect.String:
-		reflect.ValueOf(t).SetString(fmt.Sprintf(`%v`, dest))
+		reflect.ValueOf(&t).Elem().Set(reflect.ValueOf(fmt.Sprintf(`%v`, dest)))
 		return
 	case reflect.Float32:
 		if find, ok := floatMap[destKind]; ok {
