@@ -20,13 +20,13 @@ func Any[ToType int | int64 | int32 | string | float32 | float64](dest any) (t T
 	case reflect.Float32:
 		if find, ok := floatMap[destKind]; ok {
 			v := find(dest)
-			reflect.ValueOf(t).Set(reflect.ValueOf(float32(v)))
+			reflect.ValueOf(&t).Elem().Set(reflect.ValueOf(float32(v)))
 			return
 		}
 	case reflect.Float64:
 		if find, ok := floatMap[destKind]; ok {
 			v := find(dest)
-			reflect.ValueOf(t).Set(reflect.ValueOf(v))
+			reflect.ValueOf(&t).Elem().Set(reflect.ValueOf(v))
 			return
 		}
 	}
