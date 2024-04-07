@@ -3,6 +3,7 @@ package to
 import (
 	"encoding/json"
 	"fmt"
+	"math"
 )
 
 func String(dest any) string {
@@ -37,4 +38,15 @@ func Json(dest any) string {
 		}
 		return string(b)
 	}
+}
+
+// FloatDecimals Format Float with decimals
+// s := FloatDecimals(3,2); output: 3
+// s := FloatDecimals(3.1415,2); output: 3.14
+func FloatDecimals[T float64 | float32](f T, dec int) string {
+	format := "%.0f"
+	if math.Mod(float64(f), 1.0) != 0.0 {
+		format = fmt.Sprintf(`%s%d%s`, `%.`, dec, `f`)
+	}
+	return fmt.Sprintf(format, f)
 }
