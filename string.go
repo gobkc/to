@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"math"
+	"regexp"
+	"strings"
 )
 
 func String(dest any) string {
@@ -49,4 +51,19 @@ func FloatDecimals[T float64 | float32](f T, dec int) string {
 		format = fmt.Sprintf(`%s%d%s`, `%.`, dec, `f`)
 	}
 	return fmt.Sprintf(format, f)
+}
+
+// KebabCase "Hello App" -> "hello-app"
+func KebabCase(input string) string {
+	re := regexp.MustCompile(`[^a-zA-Z0-9]+`)
+	cleaned := re.ReplaceAllString(input, "")
+	if len(cleaned) > 0 {
+		cleaned = strings.ToLower(string(cleaned[0])) + cleaned[1:]
+	}
+	re = regexp.MustCompile(`[A-Z]`)
+	result := re.ReplaceAllStringFunc(cleaned, func(m string) string {
+		return "-" + strings.ToLower(m)
+	})
+
+	return result
 }
