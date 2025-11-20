@@ -67,3 +67,82 @@ func KebabCase(input string) string {
 
 	return result
 }
+
+// CamelToSnake input a string and convert it to snake_case
+// simpleTest=>simple_test
+// HTTPRequest=>http_request
+func CamelToSnake(s string) string {
+	rs := []rune(s)
+	n := len(rs)
+	var b strings.Builder
+	b.Grow(n * 2)
+
+	isAsciiLetter := func(r rune) bool {
+		return (r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z')
+	}
+
+	for i, r := range rs {
+		if !isAsciiLetter(r) && r != '_' {
+			continue
+		}
+
+		if r == '_' {
+			b.WriteRune('_')
+			continue
+		}
+
+		isUpper := (r >= 'A' && r <= 'Z')
+		needSep := false
+		if isUpper {
+			if b.Len() > 0 {
+				last := b.String()[b.Len()-1]
+				if last == '_' {
+					needSep = false
+				} else {
+					if last >= 'a' && last <= 'z' {
+						needSep = true
+					} else {
+					}
+				}
+			}
+			if !needSep {
+				prevIdx := -1
+				for j := i - 1; j >= 0; j-- {
+					if isAsciiLetter(rs[j]) || rs[j] == '_' {
+						prevIdx = j
+						break
+					}
+				}
+				nextIdx := -1
+				for j := i + 1; j < n; j++ {
+					if isAsciiLetter(rs[j]) || rs[j] == '_' {
+						nextIdx = j
+						break
+					}
+				}
+				if prevIdx != -1 && nextIdx != -1 {
+					prev := rs[prevIdx]
+					next := rs[nextIdx]
+					if isAsciiLetter(prev) && isAsciiLetter(next) {
+						if (prev >= 'A' && prev <= 'Z') && (next >= 'a' && next <= 'z') {
+							if b.Len() > 0 && b.String()[b.Len()-1] != '_' {
+								needSep = true
+							}
+						}
+					}
+				}
+			}
+		}
+
+		if needSep && b.Len() > 0 && b.String()[b.Len()-1] != '_' {
+			b.WriteByte('_')
+		}
+
+		lower := r
+		if isUpper {
+			lower = r - 'A' + 'a'
+		}
+		b.WriteRune(lower)
+	}
+	return b.String()
+}
