@@ -68,10 +68,10 @@ func KebabCase(input string) string {
 	return result
 }
 
-// CamelToSnake input a string and convert it to snake_case
+// Snake input a string and convert it to snake_case
 // simpleTest=>simple_test
 // HTTPRequest=>http_request
-func CamelToSnake(s string) string {
+func Snake(s string) string {
 	rs := []rune(s)
 	n := len(rs)
 	var b strings.Builder
