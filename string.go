@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"math"
+	"reflect"
 	"regexp"
 	"strings"
 )
@@ -145,4 +146,105 @@ func Snake(s string) string {
 		b.WriteRune(lower)
 	}
 	return b.String()
+}
+
+type StringCase int
+
+const (
+	StringCaseNone StringCase = iota
+	StringCaseUpper
+	StringCaseLower
+)
+
+// Trim recivece any value， and will trim it/upper/lower it
+// rimutil.Trim("   hello World  ")=>"hello World"
+func Trim[T any](v T, stringCase ...StringCase) T {
+	caseMode := StringCaseNone
+	if len(stringCase) > 0 {
+		caseMode = stringCase[0]
+	}
+
+	rv := reflect.ValueOf(v)
+	trimmed := cloneAndTrimValue(rv, caseMode)
+	if !trimmed.IsValid() {
+		return v
+	}
+
+	out, ok := trimmed.Interface().(T)
+	if !ok {
+		return v
+	}
+	return out
+}
+
+func cloneAndTrimValue(v reflect.Value, caseMode StringCase) reflect.Value {
+	if !v.IsValid() {
+		return v
+	}
+
+	switch v.Kind() {
+	case reflect.String:
+		s := strings.TrimSpace(v.String())
+		switch caseMode {
+		case StringCaseUpper:
+			s = strings.ToUpper(s)
+		case StringCaseLower:
+			s = strings.ToLower(s)
+		}
+		return reflect.ValueOf(s)
+
+	case reflect.Pointer:
+		if v.IsNil() {
+			return v
+		}
+		elem := cloneAndTrimValue(v.Elem(), caseMode)
+		newPtr := reflect.New(v.Type().Elem())
+		if elem.IsValid() {
+			newPtr.Elem().Set(elem)
+		}
+		return newPtr
+
+	case reflect.Struct:
+		newVal := reflect.New(v.Type()).Elem()
+		for i := 0; i < v.NumField(); i++ {
+			f := v.Field(i)
+			newField := cloneAndTrimValue(f, caseMode)
+			if newField.IsValid() && newVal.Field(i).CanSet() {
+				newVal.Field(i).Set(newField)
+			} else if newVal.Field(i).CanSet() {
+				newVal.Field(i).Set(f)
+			}
+		}
+		return newVal
+
+	case reflect.Slice:
+		if v.IsNil() {
+			return v
+		}
+		newSlice := reflect.MakeSlice(v.Type(), v.Len(), v.Cap())
+		for i := 0; i < v.Len(); i++ {
+			elem := cloneAndTrimValue(v.Index(i), caseMode)
+			if elem.IsValid() {
+				newSlice.Index(i).Set(elem)
+			} else {
+				newSlice.Index(i).Set(v.Index(i))
+			}
+		}
+		return newSlice
+
+	case reflect.Array:
+		newArr := reflect.New(v.Type()).Elem()
+		for i := 0; i < v.Len(); i++ {
+			elem := cloneAndTrimValue(v.Index(i), caseMode)
+			if elem.IsValid() {
+				newArr.Index(i).Set(elem)
+			} else {
+				newArr.Index(i).Set(v.Index(i))
+			}
+		}
+		return newArr
+
+	default:
+		return v
+	}
 }
